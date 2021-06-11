@@ -5,35 +5,37 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public Transform aimReticle;
-    
-    private float xMove;
-    private float yMove;
+    [Header("General Links")]
+    [SerializeField] Transform aimReticle;
 
-    [Header("Movement Multipliers")]
-    [SerializeField] float xMultiplier = .5f;
-    [SerializeField] float yMultiplier = .5f;
+    [SerializeField] RectTransform largeReticle;
+    [SerializeField] RectTransform smallReticle;
 
+    [SerializeField] Camera mainCamera;
+    [SerializeField] Camera hoodCamera;
+
+    [Header("General Parameters")]
+
+    [Space]
+    [Tooltip("Adjust Ship Effective movement range")]
     public float xRange = 15f;
-    public float yRange = 15f;
+    public float yRange = 13f;
 
-    [Header("Pitch Multipliers")]
-    public float pitchMultiplier = 2f;
-    public float pitchControlMultiplier = 2f;
+    [Tooltip("Adjust Movement Speed")]
+    public float moveSpeed = 5f;
 
-    [Header("Yaw Multipliers")]
-    public float yawMultiplier = 2f;
-    private float yawControlMultiplier = 2f;
+    [Header("Ship Rotation Effect")]
+    [Tooltip("Adjust how the ship rotates as it moves")]
+    [SerializeField] float posPitchfactor = -3f;
+    [SerializeField] float controlPitchFactor = -2f;
+    [SerializeField] float posYawFactor = -3f;
+    [SerializeField] float ctrlRollFactor = -10f;
 
-    [Header("Roll Multipliers")]
-    public float rollMultiplier = 5f;
 
-    public float resetSpeed = 1f;
-    Quaternion defaultRotation;
+    float xMove, yMove;
+    float pitch, yaw, roll;
+    [SerializeField] float reticleSpeed = .5f;
 
-    private float pitch;
-    private float yaw;
-    private float roll;
 
     // Start is called before the first frame update
     void Start()
@@ -43,55 +45,42 @@ public class PlayerController : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {   
-        ProcessMovement();
-        MoveRotation();
-    }
-    private void MoveRotation()
     {
+        ProcessMovement();
+        ProcessRotation();
+    }
 
-        //pitch controls
-        float verticalPitch = transform.localPosition.y * pitchMultiplier;
-        float vertPitchControl = yMove * pitchControlMultiplier;
+    void ProcessRotation()
+    {
+        float pitchFromPos = transform.localPosition.y * posPitchfactor;
+        float pitchControl = yMove * controlPitchFactor;
 
-        pitch = verticalPitch + vertPitchControl;
+        float yawFromPos = transform.localPosition.x * posYawFactor;
 
-        //yaw controls
-        //float yawHorizontal = transform.localPosition.y * yawMultiplier;
-        //float yawControl = xMove * yawControlMultiplier;
-        yaw = transform.localPosition.x * yawMultiplier;
-
-        // roll control
-        roll = transform.localPosition.x * rollMultiplier;
+        float pitch = pitchFromPos + pitchControl;
+        float yaw = yawFromPos;
+        float roll = xMove * ctrlRollFactor;
 
         transform.localRotation = Quaternion.Euler(pitch, yaw, roll);
-
-        aimReticle.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
     }
 
-    private void ProcessMovement()
+    void ProcessMovement()
     {
         xMove = Input.GetAxis("Horizontal");
         yMove = Input.GetAxis("Vertical");
 
-        float xOffset = xMove * Time.deltaTime * xMultiplier;
-        float yOffset = yMove * Time.deltaTime * yMultiplier;
+        float xOffset = xMove * Time.deltaTime * moveSpeed;
+        float yOffset = yMove * Time.deltaTime * moveSpeed;
 
-        float newXPos = transform.localPosition.x + xOffset;    
+        float newXPos = transform.localPosition.x + xOffset;
         float newYPos = transform.localPosition.y + yOffset;
 
-        float clampXPos = Mathf.Clamp(newXPos, -xRange, xRange);
-        float clampYPos = Mathf.Clamp(newYPos, -yRange, yRange);
+        float clampedXPos = Mathf.Clamp(newXPos, -xRange, xRange);
+        float clampedYPos = Mathf.Clamp(newYPos, -yRange, yRange);
 
-        Debug.Log("Moving left or right " + newXPos);
-        Debug.Log("Moving up or down "  + newYPos);
+        transform.localPosition = new Vector3(clampedXPos, clampedYPos, transform.localPosition.z);
 
-        transform.localPosition = new Vector3(clampXPos, clampYPos, transform.localPosition.z );    
-    }
-    
-    void ResetRotation()
-    {
-        //Vector3 defaultRotation = transform.rotation;
-
+        largeReticle.transform.position = Camera.main.WorldToScreenPoint(aimReticle.transform.position);
+        smallReticle.transform.position = Camera.main.WorldToScreenPoint(aimReticle.transform.position);
     }
 }
