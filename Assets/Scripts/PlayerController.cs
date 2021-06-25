@@ -18,11 +18,15 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Adjust Ship Effective movement range")]
     public float xRange = 15f;
     public float yRange = 13f;
+    public float aimXRange = 5f;
+    public float aimYRange = 5f;
 
     [Tooltip("Adjust Movement Speed")]
-    public float moveSpeed = 5f;
+    public float lookXSpeed = 10f;
+    public float lookYSpeed = 10f;
+
+    public float moveSpeed = 15f;
     public float boostSpeed = 10f;
-    public float maxSpeed = 65f;
 
     [Header("Ship Rotation Effect")]
     [Tooltip("Adjust how the ship rotates as it moves")]
@@ -36,7 +40,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] float reticleSpeed = .5f;
 
-    float timeHeld = 0f;
+    public float chargeTime = 1f;
 
 
     // Start is called before the first frame update
@@ -82,12 +86,16 @@ public class PlayerController : MonoBehaviour
 
     void ShootingLaser()
     {
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKey(KeyCode.K))
         {
-            BurstFire(true);
-            Debug.Log("Shooting laser");
+                BurstFire(true);
+                Debug.Log("Shooting laser");
+
         }
-        else { BurstFire(false); }
+        else
+        {
+            BurstFire(false);
+        }
         //if (Input.GetKey(KeyCode.K))
         //{         
         //    timeHeld += Time.deltaTime;
@@ -103,8 +111,8 @@ public class PlayerController : MonoBehaviour
         float rawXPos = transform.localPosition.x + xMove;
         float rawYPos = transform.localPosition.y + yMove;
 
-        float xOffset = xMove * Time.deltaTime * moveSpeed;
-        float yOffset = yMove * Time.deltaTime * moveSpeed;
+        float xOffset = xMove * Time.deltaTime * lookXSpeed;
+        float yOffset = yMove * Time.deltaTime * lookYSpeed;
 
         float newXPos = transform.localPosition.x + xOffset;
         float newYPos = transform.localPosition.y + yOffset;
@@ -128,6 +136,7 @@ public class PlayerController : MonoBehaviour
         float roll = xMove * ctrlRollFactor;
 
         transform.localRotation = Quaternion.Euler(pitch, yaw, roll);
+        
     }
 
     private void SetMovementSpeed(float speed)
@@ -164,6 +173,9 @@ public class PlayerController : MonoBehaviour
         {
             var emissionMod = laser.GetComponent<ParticleSystem>().emission;
             emissionMod.enabled = isActive;
+
+            var aimLaser = laser.GetComponent<ParticleSystem>().transform;
+            aimLaser.transform.LookAt(shipCrosshair);
         }
     }
     

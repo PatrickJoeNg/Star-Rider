@@ -4,10 +4,6 @@ using UnityEngine;
 
 public class AimController : MonoBehaviour
 {
-
-    [SerializeField] RectTransform outerCrosshair;
-    [SerializeField] RectTransform innerCrosshair;
-
     [SerializeField] Transform playerTarget;
 
     [SerializeField] Camera cam;
